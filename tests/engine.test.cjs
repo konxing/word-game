@@ -59,3 +59,5 @@ test('复习推荐优先考虑两天前练过的课，但不因当天完成而�
 });
 
 test('全部中文句子均有一一对应的拼音', () => { for(const lesson of lessons.filter(l=>l.mode==='hanzi')) { assert.equal(lesson.pinyin.length,lesson.items.length); for(const p of lesson.pinyin) assert.match(p,/^[a-z ]+$/); } });
+
+test('每条中文句子拼音逐字对应',()=>{for(const l of lessons.filter(x=>x.mode==='hanzi'))for(let i=0;i<l.items.length;i++)assert.equal(l.pinyin[i].trim().split(/\s+/).length,Array.from(l.items[i]).length,l.id+':'+i);});

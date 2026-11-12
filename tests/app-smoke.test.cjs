@@ -116,4 +116,5 @@ test('完整练习可由结算页主动选择，不影响默认轻松练习', ()
   assert.equal(e.lessonView.hidden, false);
 });
 
-test('练习专注模式及逐句拼音提示',()=>{ const {elements:e,document:d}=createApp();e.showAllLessonsButton.fire('click');const b=e.lessonList.children.filter(x=>x.className.includes('lesson-tile'));b[16].fire('click');assert.ok(d.documentElement.classes.has('practice-focus'));assert.equal(e.pinyinHint.textContent,'ni jin tian mang ma');e.backButton.fire('click');assert.equal(d.documentElement.classes.has('practice-focus'),false);});
+test('练习专注模式及逐句拼音提示',()=>{ const {elements:e,document:d}=createApp();e.showAllLessonsButton.fire('click');const b=e.lessonList.children.filter(x=>x.className.includes('lesson-tile'));b[16].fire('click');assert.ok(d.documentElement.classes.has('practice-focus'));assert.ok(e.pinyinHint.textContent.includes('每个汉字'));
+  assert.deepEqual(e.targetDisplay.children.map(x=>x.children[0]?.children[0]?.textContent),['ni','jin','tian','mang','ma']);e.backButton.fire('click');assert.equal(d.documentElement.classes.has('practice-focus'),false);});

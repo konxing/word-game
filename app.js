@@ -175,7 +175,8 @@
     dom.progressMarker.style.left = pct + '%';
     dom.target.replaceChildren();
     dom.pinyin.hidden = lesson.mode !== 'hanzi';
-    dom.pinyin.textContent = lesson.mode === 'hanzi' ? ((lesson.pinyin || [])[itemIndex] || '') : '';
+    const reading = lesson.mode === 'hanzi' ? ((lesson.pinyin || [])[itemIndex] || '') : '';
+    dom.pinyin.textContent = lesson.mode === 'hanzi' ? '看每个汉字上方的拼音。' : '';
     dom.targetLabel.textContent = lesson.mode === 'key' ? '请按这个键' : lesson.mode === 'latin' ? '照着输入这一行' : '请打出这句话';
     if (lesson.mode === 'key') {
       const span = document.createElement('span');
@@ -190,7 +191,15 @@
         const span = document.createElement('span');
         span.className = 'target-char ' + (i < currentPosition ? 'correct' : i === currentPosition ? 'current' : 'pending');
         if (ch === ' ') span.classList.add('space-char');
-        span.textContent = ch === ' ' ? ' ' : ch;
+        if (lesson.mode === 'hanzi') {
+          const syllables = reading.split(/\s+/).filter(Boolean);
+          const ruby = document.createElement('ruby');
+          ruby.textContent = ch;
+          const rt = document.createElement('rt');
+          rt.textContent = syllables[i] || '';
+          ruby.appendChild(rt);
+          span.appendChild(ruby);
+        } else span.textContent = ch === ' ' ? ' ' : ch;
         dom.target.appendChild(span);
       });
     }
