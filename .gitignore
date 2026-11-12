@@ -3,3 +3,6 @@ Thumbs.db
 node_modules/
 .coverage/
 *.log
+
+# Generated Windows executable / downloads
+dist/
