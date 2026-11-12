@@ -72,7 +72,7 @@ test('首页默认只显示四关，完成轻松练习后保存进度与日期',
   for (const key of lessons[0].items) doc.handlers.keydown({ key, isComposing: false, preventDefault() {} });
   assert.equal(e.resultView.hidden, false);
   assert.equal(e.resultAccuracy.textContent, '100%');
-  assert.equal(e.completedCount.textContent, '1 / 16 关');
+  assert.equal(e.completedCount.textContent, '1 / 22 关');
   assert.ok(JSON.parse(store.get('typing-harbor-progress-v1')).completed['01']);
 });
 
@@ -80,7 +80,7 @@ test('能从中文关卡直接练习，纠错后继续并完成整关', () => {
   const { elements: e } = createApp();
   e.showAllLessonsButton.fire('click');
   const buttons = e.lessonList.children.filter(x => x.className.includes('lesson-tile'));
-  assert.equal(buttons.length, 16);
+  assert.equal(buttons.length, 22);
   buttons[12].fire('click');
   assert.equal(e.lessonTitle.textContent, '第一句中文');
   assert.equal(e.chineseEntryWrap.hidden, false);
@@ -92,7 +92,7 @@ test('能从中文关卡直接练习，纠错后继续并完成整关', () => {
   }
   assert.equal(e.resultView.hidden, false);
   assert.ok(e.resultMessage.textContent.includes('打错'));
-  assert.equal(e.completedCount.textContent, '1 / 16 关');
+  assert.equal(e.completedCount.textContent, '1 / 22 关');
 });
 
 
@@ -115,3 +115,5 @@ test('完整练习可由结算页主动选择，不影响默认轻松练习', ()
   assert.ok(e.practiceMode.textContent.includes('完整'));
   assert.equal(e.lessonView.hidden, false);
 });
+
+test('练习专注模式及逐句拼音提示',()=>{ const {elements:e,document:d}=createApp();e.showAllLessonsButton.fire('click');const b=e.lessonList.children.filter(x=>x.className.includes('lesson-tile'));b[16].fire('click');assert.ok(d.documentElement.classes.has('practice-focus'));assert.equal(e.pinyinHint.textContent,'ni jin tian mang ma');e.backButton.fire('click');assert.equal(d.documentElement.classes.has('practice-focus'),false);});

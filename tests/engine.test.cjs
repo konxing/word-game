@@ -3,9 +3,9 @@ const assert = require('node:assert/strict');
 const engine = require('../engine.js');
 const lessons = require('../lessons.js');
 
-test('16 关按阶段排序，ID 唯一，且题目非空', () => {
-  assert.equal(lessons.length, 16);
-  assert.equal(new Set(lessons.map(x => x.id)).size, 16);
+test('22 关按阶段排序，ID 唯一，且题目非空', () => {
+  assert.equal(lessons.length, 22);
+  assert.equal(new Set(lessons.map(x => x.id)).size, 22);
   for (const lesson of lessons) {
     assert.ok(['key', 'latin', 'hanzi'].includes(lesson.mode));
     assert.ok(lesson.items.length > 0);
@@ -57,3 +57,5 @@ test('复习推荐优先考虑两天前练过的课，但不因当天完成而�
   completed['01'].lastPracticed = '2026-11-12';
   assert.equal(engine.nextRecommendedLesson(lessons, completed, '2026-11-12').id, '02');
 });
+
+test('全部中文句子均有一一对应的拼音', () => { for(const lesson of lessons.filter(l=>l.mode==='hanzi')) { assert.equal(lesson.pinyin.length,lesson.items.length); for(const p of lesson.pinyin) assert.match(p,/^[a-z ]+$/); } });

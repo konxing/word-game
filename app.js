@@ -7,7 +7,7 @@
   const dom = {
     welcome: byId('welcomeView'), lesson: byId('lessonView'), result: byId('resultView'), main: byId('mainContent'),
     list: byId('lessonList'), completed: byId('completedCount'), days: byId('practicedDays'),
-    target: byId('targetDisplay'), feedback: byId('feedback'), keyboard: byId('visualKeyboard'),
+    target: byId('targetDisplay'), pinyin: byId('pinyinHint'), feedback: byId('feedback'), keyboard: byId('visualKeyboard'),
     lessonNumber: byId('lessonNumber'), lessonTitle: byId('lessonTitle'), lessonDescription: byId('lessonDescription'), phase: byId('phaseLabel'),
     progressText: byId('lessonProgressText'), progressFill: byId('progressFill'), progressMarker: byId('progressMarker'),
     targetLabel: byId('targetLabel'), fingerHint: byId('fingerHint'), imeWrap: byId('chineseEntryWrap'), imeInput: byId('chineseEntry'), keyboardPanel: byId('keyboardPanel'),
@@ -49,6 +49,7 @@
     dom.welcome.hidden = view !== 'welcome';
     dom.lesson.hidden = view !== 'lesson';
     dom.result.hidden = view !== 'result';
+    document.documentElement.classList.toggle('practice-focus', view === 'lesson');
   }
   function setFeedback(message, kind) {
     dom.feedback.textContent = message;
@@ -173,6 +174,8 @@
     dom.progressFill.style.width = pct + '%';
     dom.progressMarker.style.left = pct + '%';
     dom.target.replaceChildren();
+    dom.pinyin.hidden = lesson.mode !== 'hanzi';
+    dom.pinyin.textContent = lesson.mode === 'hanzi' ? ((lesson.pinyin || [])[itemIndex] || '') : '';
     dom.targetLabel.textContent = lesson.mode === 'key' ? '请按这个键' : lesson.mode === 'latin' ? '照着输入这一行' : '请打出这句话';
     if (lesson.mode === 'key') {
       const span = document.createElement('span');

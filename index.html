@@ -22,7 +22,7 @@
     </header>
 
     <div class="stat-strip" aria-label="练习记录">
-      <div class="stat"><span class="stat-name">已尝试</span><strong id="completedCount">0 / 16 关</strong></div>
+      <div class="stat"><span class="stat-name">已尝试</span><strong id="completedCount">0 / 22 关</strong></div>
       <div class="stat"><span class="stat-name">练习天数</span><strong id="practicedDays">0 天</strong></div>
       <div class="stat stat-tip"><span aria-hidden="true">●</span> 今天练一点就够了，休息也没关系</div>
     </div>
@@ -31,7 +31,7 @@
       <aside class="sidebar" aria-label="练习关卡">
         <div class="sidebar-heading"><h2>选择练习</h2><span>可以自由选择，先从第一关试试</span></div>
         <div id="lessonList" class="lesson-list"></div>
-        <button type="button" id="showAllLessonsButton" class="secondary-button show-all-lessons" aria-expanded="false">查看全部 16 关</button>
+        <button type="button" id="showAllLessonsButton" class="secondary-button show-all-lessons" aria-expanded="false">查看全部 22 关</button>
       </aside>
 
       <main id="mainContent" class="main-content" tabindex="-1">
@@ -63,10 +63,11 @@
 
           <div class="exercise-area">
             <span id="targetLabel" class="target-label">请按这个键</span>
+            <div id="pinyinHint" class="pinyin-hint" aria-label="当前句子的拼音提示" hidden></div>
             <div id="targetDisplay" class="target-display" aria-live="off"></div>
             <p id="fingerHint" class="finger-hint"></p>
             <div id="chineseEntryWrap" class="chinese-entry-wrap" hidden>
-              <label for="chineseEntry">在下面的方框里输入上方的中文：</label>
+              <label for="chineseEntry">请在下面输入这句话（上方有拼音提示）：</label>
               <input id="chineseEntry" type="text" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" inputmode="text" placeholder="点一下这里，然后用拼音输入" aria-describedby="imeHelp" />
               <p id="imeHelp" class="ime-help">先切换到电脑自带的中文拼音输入法。通常可以按 <kbd>Win</kbd> + <kbd>空格</kbd> 切换输入法，再按 <kbd>空格</kbd> 选汉字。</p>
             </div>
