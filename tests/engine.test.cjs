@@ -42,6 +42,8 @@ test('中文用完整前缀判断，错字可修正，汉字练习无网络', ()
   assert.equal(engine.validChinesePrefix('我慧', '我会打字了'), false);
   assert.equal(engine.validChinesePrefix('我会打字了', '我会打字了'), true);
   assert.equal(engine.fingerHint('f').includes('左手食指'), true);
+  assert.deepEqual(engine.fingerAssignment('a').codes, ['left-pinky']);
+  assert.deepEqual(engine.fingerAssignment(' ').codes, ['left-thumb', 'right-thumb']);
 });
 
 
@@ -58,6 +60,23 @@ test('复习推荐优先考虑两天前练过的课，但不因当天完成而�
   assert.equal(engine.nextRecommendedLesson(lessons, completed, '2026-11-12').id, '02');
 });
 
-test('全部中文句子均有一一对应的拼音', () => { for(const lesson of lessons.filter(l=>l.mode==='hanzi')) { assert.equal(lesson.pinyin.length,lesson.items.length); for(const p of lesson.pinyin) assert.match(p,/^[a-z ]+$/); } });
+test('全部中文练习都有与句子逐条对应的拼音提示', () => {
+  for (const lesson of lessons.filter(l => l.mode === 'hanzi')) {
+    assert.equal(lesson.pinyin.length, lesson.items.length, `关卡 ${lesson.id}`);
+    for (let i=0;i<lesson.pinyin.length;i++) {
+      const prompt=lesson.pinyin[i];
+      assert.match(prompt, /^[a-z ]+$/);
+      assert.equal(prompt.split(/\s+/).length, Array.from(lesson.items[i]).length, `第 ${lesson.id} 关第 ${i+1} 句拼音应逐字对应`);
+    }
+  }
+  assert.equal(lessons.find(l => l.id === '17').pinyin[0], 'ni jin tian mang ma');
+});
 
-test('每条中文句子拼音逐字对应',()=>{for(const l of lessons.filter(x=>x.mode==='hanzi'))for(let i=0;i<l.items.length;i++)assert.equal(l.pinyin[i].trim().split(/\s+/).length,Array.from(l.items[i]).length,l.id+':'+i);});
+
+test('中文输入指法根据拼音字母推进，遇到不匹配也能回到首字母', () => {
+  assert.equal(engine.nextPinyinGuideKey('ni', ''), 'n');
+  assert.equal(engine.nextPinyinGuideKey('ni', 'n'), 'i');
+  assert.equal(engine.nextPinyinGuideKey('ni', 'ni'), 'n');
+  assert.equal(engine.nextPinyinGuideKey('shang', 'sh'), 'a');
+  assert.equal(engine.nextPinyinGuideKey('', ''), null);
+});

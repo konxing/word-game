@@ -49,18 +49,55 @@
     if (item === undefined) return null;
     return lesson.mode === 'key' ? item : Array.from(item)[characterIndex] ?? null;
   }
-  function fingerHint(char) {
-    if (char === ' ') return '用任意一只大拇指，按最下面的长空格键。';
-    if (char === 'Enter') return '用右手小指，找到右侧的回车键。';
+  function fingerAssignment(char) {
+    if (!char) return null;
+    if (char === ' ') {
+      return {
+        codes: ['left-thumb', 'right-thumb'], hand: '双手', finger: '大拇指',
+        shortLabel: '左右大拇指', text: '左右手任意一只大拇指', display: '空格'
+      };
+    }
+    if (char === 'Enter') {
+      return {
+        codes: ['right-pinky'], hand: '右手', finger: '小指',
+        shortLabel: '右小指', text: '右手小指', display: '回车'
+      };
+    }
     const groups = [
-      ['qaz1', '左手小指'], ['wsx2', '左手无名指'], ['edc3', '左手中指'],
-      ['rtfgvb45', '左手食指'], ['yuhjnm67', '右手食指'], ['ik8', '右手中指'],
-      ['ol9', '右手无名指'], ['p;0', '右手小指']
+      ['qaz1', { code: 'left-pinky', hand: '左手', finger: '小指', shortLabel: '左小指' }],
+      ['wsx2', { code: 'left-ring', hand: '左手', finger: '无名指', shortLabel: '左无名指' }],
+      ['edc3', { code: 'left-middle', hand: '左手', finger: '中指', shortLabel: '左中指' }],
+      ['rtfgvb45', { code: 'left-index', hand: '左手', finger: '食指', shortLabel: '左食指' }],
+      ['yuhjnm67', { code: 'right-index', hand: '右手', finger: '食指', shortLabel: '右食指' }],
+      ['ik8', { code: 'right-middle', hand: '右手', finger: '中指', shortLabel: '右中指' }],
+      ['ol9', { code: 'right-ring', hand: '右手', finger: '无名指', shortLabel: '右无名指' }],
+      ['p;0', { code: 'right-pinky', hand: '右手', finger: '小指', shortLabel: '右小指' }]
     ];
-    const match = groups.find(([keys]) => keys.includes(String(char).toLowerCase()));
-    return match ? `建议用${match[1]}按 ${displayKey(char)} 键。` : `请找到 ${displayKey(char)} 键。`;
+    const found = groups.find(([keys]) => keys.includes(String(char).toLowerCase()));
+    if (!found) return null;
+    const detail = found[1];
+    return {
+      codes: [detail.code], hand: detail.hand, finger: detail.finger,
+      shortLabel: detail.shortLabel, text: `${detail.hand}${detail.finger}`,
+      display: displayKey(char)
+    };
   }
-  const api = { displayKey, matchesKey, totalUnits, percent, accuracy, stars, practiceItems, nextRecommendedLesson, validChinesePrefix, nextCharacter, fingerHint };
+  function nextPinyinGuideKey(syllable, typed) {
+    const reading = String(syllable || '').toLowerCase().replace(/[^a-z]/g, '');
+    const input = String(typed || '').toLowerCase().replace(/[^a-z]/g, '');
+    if (!reading) return null;
+    if (reading.startsWith(input) && input.length < reading.length) return reading[input.length];
+    // 不认识输入法内部状态时，提示从该音节首字母重新定位，不做错误判断。
+    return reading[0];
+  }
+  function fingerHint(char) {
+    const info = fingerAssignment(char);
+    if (!info) return `请找到 ${displayKey(char)} 键。`;
+    if (char === ' ') return '看手图中亮起的大拇指，按最下面的长空格键。';
+    if (char === 'Enter') return '看手图中亮起的右手小指，按右侧回车键。';
+    return `看手图里亮起来的${info.text}，按 ${info.display} 键。`;
+  }
+  const api = { displayKey, matchesKey, totalUnits, percent, accuracy, stars, practiceItems, nextRecommendedLesson, validChinesePrefix, nextCharacter, nextPinyinGuideKey, fingerAssignment, fingerHint };
   root.TypingGameEngine = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

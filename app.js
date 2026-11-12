@@ -11,7 +11,7 @@
     lessonNumber: byId('lessonNumber'), lessonTitle: byId('lessonTitle'), lessonDescription: byId('lessonDescription'), phase: byId('phaseLabel'),
     progressText: byId('lessonProgressText'), progressFill: byId('progressFill'), progressMarker: byId('progressMarker'),
     targetLabel: byId('targetLabel'), fingerHint: byId('fingerHint'), imeWrap: byId('chineseEntryWrap'), imeInput: byId('chineseEntry'), keyboardPanel: byId('keyboardPanel'),
-    fontToggle: byId('fontToggle'), soundToggle: byId('soundToggle'), showAll: byId('showAllLessonsButton')
+    handGuide: byId('handGuide'), fontToggle: byId('fontToggle'), soundToggle: byId('soundToggle'), showAll: byId('showAllLessonsButton')
   };
   let session = null;
   let finishTimer = null;
@@ -19,6 +19,7 @@
   let composing = false;
   let memoryOnly = false;
   let showAllLessons = false;
+  let typedPinyin = ''; // 仅用于提示，不干预系统中文输入法
   const defaults = { completed: {}, days: [], lastLessonId: '01', largeText: false, soundEnabled: false };
   function localDay() {
     const now = new Date();
@@ -110,9 +111,14 @@
       rowKeys.forEach(([key, label]) => {
         const keyDiv = document.createElement('div');
         keyDiv.className = 'key';
+        const assignment = engine.fingerAssignment(key);
         if (key === 'f' || key === 'j') keyDiv.classList.add('home-marker');
         if (key === ' ') keyDiv.classList.add('space-key');
         if (key === 'Enter') keyDiv.classList.add('enter-key');
+        if (assignment) {
+          keyDiv.dataset.finger = assignment.codes[0];
+          keyDiv.title = `${assignment.text}负责这个键`;
+        }
         keyDiv.dataset.key = key;
         keyDiv.textContent = label;
         row.appendChild(keyDiv);
@@ -120,11 +126,58 @@
       dom.keyboard.appendChild(row);
     });
   }
+  function buildHandGuide() {
+    dom.handGuide.replaceChildren();
+    const hands = [
+      { title: '左手', hint: '小指 → 食指', fingers: [
+        ['left-pinky', '小指'], ['left-ring', '无名'], ['left-middle', '中指'], ['left-index', '食指'], ['left-thumb', '拇指']
+      ]},
+      { title: '右手', hint: '食指 → 小指', fingers: [
+        ['right-thumb', '拇指'], ['right-index', '食指'], ['right-middle', '中指'], ['right-ring', '无名'], ['right-pinky', '小指']
+      ]}
+    ];
+    hands.forEach(hand => {
+      const card = document.createElement('div');
+      card.className = 'hand-card';
+      const heading = document.createElement('div');
+      heading.className = 'hand-card-title';
+      heading.textContent = hand.title;
+      const subtitle = document.createElement('div');
+      subtitle.className = 'hand-card-hint';
+      subtitle.textContent = hand.hint;
+      const fingerRow = document.createElement('div');
+      fingerRow.className = 'hand-finger-row';
+      hand.fingers.forEach(([code, label]) => {
+        const finger = document.createElement('div');
+        finger.className = 'hand-finger';
+        finger.dataset.finger = code;
+        finger.innerHTML = `<span class="hand-finger-label">${label}</span><span class="hand-finger-dot" aria-hidden="true"></span>`;
+        fingerRow.appendChild(finger);
+      });
+      card.append(heading, subtitle, fingerRow);
+      dom.handGuide.appendChild(card);
+    });
+  }
+  function highlightFinger(expected) {
+    const assignment = engine.fingerAssignment(expected);
+    const active = new Set((assignment && assignment.codes) || []);
+    dom.handGuide.querySelectorAll('.hand-finger').forEach(node => {
+      const on = active.has(node.dataset.finger);
+      node.classList.toggle('active', on);
+      node.classList.toggle('muted', active.size > 0 && !on);
+    });
+    dom.keyboard.querySelectorAll('.key').forEach(node => {
+      const code = node.dataset.finger || '';
+      node.classList.toggle('finger-active', active.has(code));
+      node.classList.toggle('finger-muted', active.size > 0 && !!code && !active.has(code));
+    });
+  }
   function highlightKey(expected, wrong) {
     dom.keyboard.querySelectorAll('.key').forEach(node => {
       node.classList.toggle('key-expected', !!expected && node.dataset.key === expected);
       node.classList.toggle('wrong-key', !!wrong && node.dataset.key === wrong);
     });
+    highlightFinger(expected);
   }
   function clearTimer() {
     if (finishTimer !== null) { clearTimeout(finishTimer); finishTimer = null; }
@@ -148,7 +201,7 @@
     const original = lessons.find(l => l.id === id);
     if (!original) return;
     const lesson = { ...original, items: engine.practiceItems(original, mode) };
-    clearTimer(); composing = false;
+    clearTimer(); composing = false; typedPinyin = '';
     session = { lesson, practiceMode: mode, itemIndex: 0, characterIndex: 0, correct: 0, errors: 0, consecutiveErrors: 0, locked: false, lastInputWasWrong: false };
     progress.lastLessonId = lesson.id; saveProgress();
     dom.lessonNumber.textContent = `第 ${Number(lesson.id)} 关 / 共 ${lessons.length} 关`;
@@ -157,7 +210,9 @@
     byId('practiceMode').textContent = mode === 'full' ? '完整练习 · 不计时' : '轻松练习 · 只练一小段';
     dom.phase.textContent = lesson.phase;
     dom.imeWrap.hidden = lesson.mode !== 'hanzi';
-    dom.keyboardPanel.hidden = lesson.mode === 'hanzi';
+    // 所有关卡均显示手型和键盘位置，包括使用系统输入法的中文句子。
+    dom.keyboardPanel.hidden = false;
+    dom.handGuide.hidden = false;
     dom.imeInput.value = ''; dom.imeInput.disabled = false;
     setView('lesson'); renderList(); renderExercise();
     setFeedback(lesson.mode === 'hanzi' ? '在输入框中打出屏幕上的汉字。' : '看哪个键发亮，就按哪个键。');
@@ -176,7 +231,8 @@
     dom.target.replaceChildren();
     dom.pinyin.hidden = lesson.mode !== 'hanzi';
     const reading = lesson.mode === 'hanzi' ? ((lesson.pinyin || [])[itemIndex] || '') : '';
-    dom.pinyin.textContent = lesson.mode === 'hanzi' ? '看每个汉字上方的拼音。' : '';
+    // Each syllable is placed directly over its corresponding character.
+    dom.pinyin.textContent = lesson.mode === 'hanzi' ? '看每个汉字上方的拼音提示，慢慢输入。' : '';
     dom.targetLabel.textContent = lesson.mode === 'key' ? '请按这个键' : lesson.mode === 'latin' ? '照着输入这一行' : '请打出这句话';
     if (lesson.mode === 'key') {
       const span = document.createElement('span');
@@ -204,7 +260,15 @@
       });
     }
     if (lesson.mode === 'hanzi') {
-      dom.fingerHint.textContent = lesson.hint;
+      const syllables = reading.split(/\s+/).filter(Boolean);
+      const typed = dom.imeInput.value;
+      const position = engine.validChinesePrefix(typed, item) ? Array.from(typed).length : 0;
+      const syllable = syllables[Math.min(position, Math.max(0, syllables.length - 1))] || '';
+      const key = engine.nextPinyinGuideKey(syllable, typedPinyin);
+      dom.fingerHint.textContent = key
+        ? `当前字参考拼音「${syllable}」：${engine.fingerHint(key)} 输入法选字时，可按空格或数字选择候选字。`
+        : '请按照上方拼音输入汉字；输入法候选字可用空格或数字键选择。';
+      highlightKey(key);
     } else {
       const key = engine.nextCharacter(lesson, itemIndex, characterIndex);
       dom.fingerHint.textContent = engine.fingerHint(key);
@@ -239,6 +303,7 @@
       if (!session) return;
       session.itemIndex += 1;
       session.characterIndex = 0;
+      typedPinyin = '';
       session.lastInputWasWrong = false;
       session.locked = false;
       dom.imeInput.disabled = false;
@@ -253,7 +318,20 @@
     }, 350);
   }
   function onGlobalKey(event) {
-    if (!session || session.locked || session.lesson.mode === 'hanzi' || event.isComposing || event.keyCode === 229) return;
+    if (!session || session.locked) return;
+    if (session.lesson.mode === 'hanzi') {
+      // 只观察实际键入的拉丁字母，用于更新指法图；不阻断中文输入法。
+      // 组合输入法可能只报告 Process/229，因此这只是辅助参考，不能当作输入验证。
+      if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+        if (/^[a-z]$/i.test(event.key || '')) typedPinyin += event.key.toLowerCase();
+        else if (event.key === 'Backspace') typedPinyin = typedPinyin.slice(0, -1);
+        else if (event.key === ' ' || event.key === 'Enter' || /^\d$/.test(event.key || '')) typedPinyin = '';
+        else return;
+        renderExercise();
+      }
+      return;
+    }
+    if (event.isComposing || event.keyCode === 229) return;
     if (event.ctrlKey || event.metaKey || event.altKey) return;
     const key = event.key;
     if (key.length !== 1 && key !== 'Enter' && key !== 'Backspace') return;
@@ -289,6 +367,7 @@
     if (!session || session.lesson.mode !== 'hanzi' || composing || session.locked) return;
     const item = session.lesson.items[session.itemIndex];
     const typed = dom.imeInput.value;
+    if (!composing && typed && !session.lastInputWasWrong) typedPinyin = '';
     const isPrefix = engine.validChinesePrefix(typed, item);
     if (!isPrefix) {
       if (!session.lastInputWasWrong) session.errors++;
@@ -356,10 +435,10 @@
   dom.fontToggle.addEventListener('click', () => { progress.largeText = !progress.largeText; applyPreferences(); saveProgress(); });
   dom.soundToggle.addEventListener('click', () => { progress.soundEnabled = !progress.soundEnabled; applyPreferences(); saveProgress(); });
   dom.imeInput.addEventListener('compositionstart', () => { composing = true; });
-  dom.imeInput.addEventListener('compositionend', () => { composing = false; handleChineseInput(); });
+  dom.imeInput.addEventListener('compositionend', () => { composing = false; typedPinyin = ''; handleChineseInput(); });
   dom.imeInput.addEventListener('input', handleChineseInput);
   document.addEventListener('keydown', onGlobalKey);
-  buildKeyboard(); applyPreferences(); showHome();
+  buildKeyboard(); buildHandGuide(); applyPreferences(); showHome();
   if (memoryOnly) {
     const note = document.querySelector('.small-note');
     note.textContent = '当前浏览器禁用了本地记录。可以正常练习，但关闭以后可能无法保存进度。';

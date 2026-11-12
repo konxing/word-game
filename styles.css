@@ -14,25 +14,25 @@
 @media(max-width:720px){.app-shell{padding:13px}.app-header{align-items:flex-start;flex-direction:column}.brand h1{font-size:1.55rem}.brand-mark{height:51px;width:51px}.stat-strip{gap:17px;flex-wrap:wrap}.main-layout{display:flex;flex-direction:column}.sidebar{width:100%;min-height:auto;max-height:260px}.sidebar-heading{padding-bottom:7px}.sidebar h2{margin-bottom:2px}.lesson-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.phase-title{grid-column:1/-1}.lesson-tile{padding:8px 4px}.lesson-index{flex-basis:28px;height:28px;font-size:.76rem}.lesson-name{font-size:.84rem}.lesson-sub{display:none}.welcome-card,.lesson-card,.result-card{min-height:0;padding:22px}.welcome-card h2{font-size:1.95rem}.welcome-lead{font-size:1rem}.lesson-topline{align-items:center}.exercise-area{padding:23px 0}.target-char{font-size:2.35rem;min-width:26px}.target-char.key-single{font-size:4.2rem}.keyboard-panel{padding:13px 8px}.keyboard-heading span{display:none}.key-row{gap:3px}.visual-keyboard{gap:4px}.key{font-size:.73rem;border-radius:5px;height:32px}.key.enter-key{font-size:.67rem}.key.home-marker::after{margin-top:20px}.lesson-footer{flex-wrap:wrap}.result-numbers{flex-direction:column;gap:8px}.stat strong{font-size:1.1rem}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition-duration:0.01ms!important;animation-duration:0.01ms!important}}
 
-/* Desktop practice focus: whole-page scrolling is disabled; tiny viewports keep safe internal scrolling. */
-.pinyin-hint{font-size:clamp(1rem,1.7vw,1.5rem);font-weight:750;line-height:1.5;color:#176b67;text-align:center;background:#e8f7f1;border-radius:12px;padding:7px 12px;overflow-wrap:anywhere}
+/* 专注练习：优先把操作区完整放进一个桌面窗口，不要求初学者寻找滚动条。 */
+.pinyin-hint{display:block;max-width:100%;font-size:clamp(1.05rem,1.7vw,1.5rem);letter-spacing:.045em;font-weight:750;line-height:1.6;color:#176b67;text-align:center;background:#e8f7f1;border-radius:12px;padding:8px 14px;overflow-wrap:anywhere}
 .practice-focus body{height:100dvh;overflow:hidden}
-.practice-focus .app-shell{height:100dvh;max-height:100dvh;display:flex;flex-direction:column;padding:9px 18px}
-.practice-focus .app-header{margin:0 0 7px;flex:none}.practice-focus .brand-mark{height:38px;width:38px;font-size:1.25rem}.practice-focus .brand h1{font-size:1.2rem;margin:0}.practice-focus .brand p{display:none}.practice-focus .quiet-button{padding:7px 11px;font-size:.86rem}
+.practice-focus .app-shell{height:100dvh;max-height:100dvh;display:flex;flex-direction:column;padding:10px 20px 8px}
+.practice-focus .app-header{flex:0 0 auto;margin:0 0 8px}.practice-focus .brand-mark{height:38px;width:38px;font-size:1.25rem;border-radius:11px}.practice-focus .brand h1{font-size:1.2rem;margin:0}.practice-focus .brand p{display:none}.practice-focus .quiet-button{padding:7px 10px;font-size:.85rem}
 .practice-focus .stat-strip,.practice-focus .sidebar,.practice-focus .app-footer{display:none}
-.practice-focus .main-layout{display:flex;flex:1;min-height:0}.practice-focus .main-content{display:flex;flex:1;min-height:0}
-.practice-focus .lesson-card{width:100%;min-height:0;max-height:100%;overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:clamp(4px,1vh,10px);padding:clamp(10px,2vh,19px) clamp(12px,3vw,30px)}
-.practice-focus .lesson-heading h2{font-size:clamp(1.25rem,2vw,1.8rem);margin:3px 0}.practice-focus .lesson-heading p{margin:2px 0;line-height:1.4;font-size:.87rem}.practice-focus .practice-mode{margin:4px 0 0;padding:4px 8px;font-size:.75rem}
-.practice-focus .journey{padding:7px 11px 11px}.practice-focus .progress-track{height:7px;margin-top:7px}
-.practice-focus .exercise-area{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;padding:2px 0}.practice-focus .target-display{min-height:0;padding:3px;line-height:1.25;gap:1px}.practice-focus .target-char{font-size:clamp(1.5rem,3.3vw,2.8rem);min-width:23px;border-bottom-width:3px}.practice-focus .target-char.key-single{font-size:clamp(2.7rem,5vw,4.2rem)}.practice-focus .target-label{font-size:.85rem}.practice-focus .finger-hint{margin:4px 0 0;min-height:0;font-size:.9rem}.practice-focus .feedback{margin:7px 0 0;min-height:0;font-size:.94rem}
-.practice-focus .chinese-entry-wrap{width:100%;margin:8px auto 0;max-width:730px}.practice-focus .chinese-entry-wrap label{margin-bottom:5px;font-size:.85rem}.practice-focus .chinese-entry-wrap input{height:clamp(42px,6vh,56px);font-size:1.2rem;padding:6px 12px}.practice-focus .ime-help{font-size:.76rem;line-height:1.4;margin:6px 0 0}
-.practice-focus .keyboard-panel{flex:0 1 auto;padding:8px 11px}.practice-focus .keyboard-heading{margin:0 0 6px}.practice-focus .keyboard-note,.practice-focus .keyboard-heading span{display:none}.practice-focus .visual-keyboard{gap:3px;max-width:700px}.practice-focus .key-row{gap:4px}.practice-focus .key{height:clamp(24px,4vh,33px);font-size:.85rem}.practice-focus .lesson-footer{padding-top:3px;font-size:.75rem}.practice-focus .secondary-button{padding:7px 12px;min-height:34px}
-.practice-focus.large-mode .key{height:clamp(24px,4vh,33px)}
-@media(max-height:760px){.practice-focus .app-shell{padding:6px 11px}.practice-focus .lesson-card{gap:3px;padding:8px 14px}.practice-focus .lesson-heading p,.practice-focus .keyboard-heading{display:none}.practice-focus .journey{padding:5px 10px 8px}.practice-focus .key{height:24px}.practice-focus .chinese-entry-wrap input{height:41px}.practice-focus .ime-help{font-size:.72rem}}
-@media(max-height:620px){.practice-focus .lesson-footer span,.practice-focus .phase-badge{display:none}.practice-focus .lesson-heading h2{font-size:1.23rem}.practice-focus .target-char{font-size:1.4rem}.practice-focus .pinyin-hint{padding:3px 7px;font-size:1rem}.practice-focus .keyboard-heading{display:none}}
-@media(max-width:720px){.practice-focus .app-header{flex-direction:row;align-items:center}.practice-focus .app-shell{padding:7px}.practice-focus .lesson-card{padding:9px}.practice-focus .lesson-footer span{display:none}.practice-focus .brand h1{font-size:1rem}.practice-focus .quiet-button{font-size:.72rem;padding:6px}}
-@media(max-height:480px){.practice-focus .keyboard-panel,.practice-focus .app-header{display:none}}
+.practice-focus .main-layout{display:flex;flex:1;min-height:0}.practice-focus .main-content{flex:1;min-height:0;display:flex}
+.practice-focus .lesson-card{width:100%;min-height:0;min-width:0;max-height:100%;overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;padding:clamp(12px,2vh,22px) clamp(15px,3vw,36px);gap:clamp(5px,1vh,12px)}
+.practice-focus .lesson-heading h2{font-size:clamp(1.25rem,2vw,1.8rem);margin:3px 0}.practice-focus .lesson-heading p{margin:3px 0;line-height:1.4;font-size:.88rem}.practice-focus .practice-mode{font-size:.76rem;padding:3px 9px;margin:4px 0 0}.practice-focus .journey{padding:7px 12px 11px;border-radius:12px}.practice-focus .progress-track{height:7px;margin-top:7px}
+.practice-focus .exercise-area{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;align-items:stretch;padding:3px 0}.practice-focus .target-display{min-height:0;padding:3px;line-height:1.28;gap:1px}.practice-focus .target-char{font-size:clamp(1.5rem,3.4vw,2.8rem);min-width:25px;border-bottom-width:3px}.practice-focus .target-char.key-single{font-size:clamp(2.7rem,5vw,4.2rem)}.practice-focus .finger-hint{margin:4px 0 0;min-height:0;font-size:.9rem;line-height:1.4}.practice-focus .feedback{margin:7px 0 0;min-height:0;font-size:.95rem}.practice-focus .target-label{font-size:.82rem}
+.practice-focus .chinese-entry-wrap{width:100%;margin:7px auto 0;max-width:700px}.practice-focus .chinese-entry-wrap label{margin-bottom:5px;font-size:.84rem}.practice-focus .chinese-entry-wrap input{height:clamp(42px,6vh,57px);font-size:1.2rem;padding:6px 13px}.practice-focus .ime-help{font-size:.75rem;line-height:1.4;margin:7px 0 0}
+.practice-focus .keyboard-panel{flex:0 1 auto;padding:8px 12px}.practice-focus .keyboard-heading{margin:0 0 6px}.practice-focus .keyboard-heading span,.practice-focus .keyboard-note{display:none}.practice-focus .visual-keyboard{gap:3px;max-width:680px}.practice-focus .key-row{gap:4px}.practice-focus .key{height:clamp(24px,4vh,34px);font-size:.85rem;border-radius:6px}.practice-focus .lesson-footer{padding-top:3px;font-size:.75rem}.practice-focus .secondary-button{padding:7px 13px;min-height:34px}
+.practice-focus.large-mode .key{height:clamp(24px,4vh,34px)}
+@media(max-height:760px){.practice-focus .app-shell{padding:6px 12px}.practice-focus .app-header{margin-bottom:4px}.practice-focus .lesson-card{padding:9px 15px;gap:3px}.practice-focus .lesson-description{display:none}.practice-focus .keyboard-heading{display:none}.practice-focus .journey{padding:5px 10px 9px}.practice-focus .key{height:25px}.practice-focus .target-char{font-size:clamp(1.35rem,2.5vw,2.1rem)}.practice-focus .chinese-entry-wrap input{height:41px}.practice-focus .ime-help{font-size:.72rem}}
+@media(max-height:620px){.practice-focus .lesson-heading p,.practice-focus .lesson-footer span,.practice-focus .phase-badge{display:none}.practice-focus .brand p{display:none}.practice-focus .lesson-heading h2{font-size:1.25rem}.practice-focus .lesson-card{gap:2px}.practice-focus .key{height:20px}.practice-focus .target-char{font-size:1.4rem}.practice-focus .target-char.key-single{font-size:2.4rem}.practice-focus .pinyin-hint{padding:3px 10px;font-size:1rem}}
+@media(max-width:720px){.practice-focus .app-header{flex-direction:row;align-items:center}.practice-focus .app-shell{padding:7px}.practice-focus .lesson-card{padding:10px}.practice-focus .lesson-footer span{display:none}.practice-focus .brand h1{font-size:1rem}.practice-focus .quiet-button{font-size:.72rem;padding:6px}.practice-focus .key{height:26px}.practice-focus .target-char{font-size:1.6rem;min-width:20px}}
+@media(max-height:480px){.practice-focus .keyboard-panel{display:none}.practice-focus .app-header{display:none}}
 
+/* 逐字拼音：ruby 与汉字一起换行，不会在小屏幕错位。 */
 .target-display ruby{ruby-position:over;display:inline-flex;flex-direction:column-reverse;align-items:center;white-space:nowrap;line-height:1.18}
 .target-display ruby rt{display:block;position:static;font-size:clamp(.66rem,1.45vw,1.02rem);line-height:1.5;font-weight:750;color:#2d7370;white-space:nowrap;text-align:center}
 .target-display .target-char.current rt{color:#8e5e1b}
@@ -40,3 +40,48 @@
 .practice-focus .target-display ruby rt{font-size:clamp(.64rem,1.25vw,.95rem)}
 .practice-focus .target-char{padding:4px 2px;min-width:30px}
 @media(max-height:760px){.practice-focus .pinyin-hint{padding:3px 8px;font-size:.78rem}.practice-focus .target-display ruby rt{font-size:.72rem}}
+
+
+/* 手指可视化提示 */
+.hand-guide{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px auto 12px;max-width:700px}
+.hand-card{background:#f6fbfb;border:1px solid #d4e8e6;border-radius:14px;padding:10px 12px;box-shadow:0 8px 22px rgba(23,72,74,.06)}
+.hand-card-title{font-weight:800;color:#18484a;font-size:.95rem}
+.hand-card-hint{margin-top:2px;font-size:.73rem;color:#678383}
+.hand-finger-row{display:flex;gap:7px;align-items:flex-end;margin-top:10px}
+.hand-finger{flex:1;min-width:0;border-radius:12px 12px 16px 16px;background:linear-gradient(180deg,#ecf7f6 0%,#e1f0ef 100%);padding:8px 4px 7px;text-align:center;border:1px solid transparent;transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease, opacity .16s ease}
+.hand-finger-label{display:block;font-size:.76rem;font-weight:700;color:#2b5f62;line-height:1.15}
+.hand-finger-dot{display:block;width:11px;height:11px;margin:7px auto 0;border-radius:999px;background:#b7d3d2}
+.hand-finger.active{transform:translateY(-2px);background:linear-gradient(180deg,#fff6d1 0%,#ffe3a4 100%);border-color:#f0c46a;box-shadow:0 10px 24px rgba(212,152,32,.18)}
+.hand-finger.active .hand-finger-label{color:#7c4c0b}
+.hand-finger.active .hand-finger-dot{background:#de9a0d}
+.hand-finger.muted{opacity:.58}
+.key.finger-active{box-shadow:0 0 0 2px rgba(238,179,54,.22)}
+.key.finger-muted{opacity:.78}
+.practice-focus .hand-guide{gap:8px;margin:0 auto 8px;max-width:680px}
+.practice-focus .hand-card{padding:8px 10px}
+.practice-focus .hand-card-hint{display:none}
+.practice-focus .hand-finger-row{margin-top:7px;gap:6px}
+.practice-focus .hand-finger{padding:6px 3px 6px}
+.practice-focus .hand-finger-label{font-size:.72rem}
+.practice-focus .hand-finger-dot{width:9px;height:9px;margin-top:5px}
+@media(max-width:760px){.hand-guide{grid-template-columns:1fr;gap:8px}.hand-card-hint{display:none}.hand-finger-label{font-size:.72rem}}
+@media(max-height:760px){.practice-focus .hand-guide{margin:0 auto 6px}.practice-focus .hand-card{padding:6px 8px}.practice-focus .hand-finger{padding:5px 3px}.practice-focus .hand-finger-label{font-size:.68rem}}
+@media(max-height:620px){.practice-focus .hand-guide{display:none}}
+
+/* 全关卡手型：手指与手掌连接，亮起的指头对应按键。 */
+.hand-card{position:relative;overflow:hidden}
+.hand-finger-row{position:relative;padding-bottom:17px;isolation:isolate}
+.hand-finger-row::after{content:"";position:absolute;left:8%;right:8%;bottom:0;height:23px;border:1px solid #b6d5d1;background:#d6ebe6;border-radius:8px 8px 13px 13px;z-index:-1}
+.hand-finger{border-radius:15px 15px 7px 7px;min-height:45px}
+.hand-card:first-child .hand-finger:nth-child(3),.hand-card:last-child .hand-finger:nth-child(3){min-height:56px}
+.hand-card:first-child .hand-finger:nth-child(2),.hand-card:last-child .hand-finger:nth-child(4){min-height:51px}
+.hand-card:first-child .hand-finger:nth-child(5),.hand-card:last-child .hand-finger:nth-child(1){min-height:38px}
+.hand-finger.active{outline:3px solid #de9a0d;outline-offset:0}
+.practice-focus .hand-finger{min-height:32px}
+.practice-focus .hand-card:first-child .hand-finger:nth-child(3),.practice-focus .hand-card:last-child .hand-finger:nth-child(3){min-height:43px}
+.practice-focus .hand-card:first-child .hand-finger:nth-child(2),.practice-focus .hand-card:last-child .hand-finger:nth-child(4){min-height:39px}
+.practice-focus .hand-card:first-child .hand-finger:nth-child(5),.practice-focus .hand-card:last-child .hand-finger:nth-child(1){min-height:30px}
+/* 即使屏幕很矮，也不隐藏手型；练习卡内可滚动避免裁切。 */
+@media(max-height:620px){.practice-focus .hand-guide{display:grid}.practice-focus .hand-card{padding:3px 6px}.practice-focus .hand-finger{min-height:20px;padding:3px}.practice-focus .hand-finger-label{font-size:.62rem}.practice-focus .hand-finger-row{margin-top:3px;padding-bottom:9px}.practice-focus .hand-finger-row::after{height:13px}.practice-focus .hand-card-title{font-size:.75rem}}
+@media(max-height:480px){.practice-focus .keyboard-panel{display:block}.practice-focus .visual-keyboard{display:none}.practice-focus .hand-guide{display:grid}}
+@media(max-width:760px){.practice-focus .hand-guide{grid-template-columns:repeat(2,minmax(0,1fr))}.practice-focus .hand-finger-label{font-size:.62rem}}

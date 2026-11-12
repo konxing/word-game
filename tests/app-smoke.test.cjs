@@ -28,6 +28,7 @@ class FakeElement {
     const answer = [];
     const visit = el => {
       if (selector === '.key' && String(el.className).split(' ').includes('key')) answer.push(el);
+      if (selector === '.hand-finger' && String(el.className).split(' ').includes('hand-finger')) answer.push(el);
       for (const child of el.children) visit(child);
     };
     visit(this); return answer;
@@ -116,5 +117,47 @@ test('完整练习可由结算页主动选择，不影响默认轻松练习', ()
   assert.equal(e.lessonView.hidden, false);
 });
 
-test('练习专注模式及逐句拼音提示',()=>{ const {elements:e,document:d}=createApp();e.showAllLessonsButton.fire('click');const b=e.lessonList.children.filter(x=>x.className.includes('lesson-tile'));b[16].fire('click');assert.ok(d.documentElement.classes.has('practice-focus'));assert.ok(e.pinyinHint.textContent.includes('每个汉字'));
-  assert.deepEqual(e.targetDisplay.children.map(x=>x.children[0]?.children[0]?.textContent),['ni','jin','tian','mang','ma']);e.backButton.fire('click');assert.equal(d.documentElement.classes.has('practice-focus'),false);});
+test('练习时启用单屏专注布局，中文句子展示对应拼音，返回后恢复首页', () => {
+  const {elements:e,document:doc}=createApp();
+  e.showAllLessonsButton.fire('click');
+  const buttons=e.lessonList.children.filter(x=>x.className.includes('lesson-tile'));
+  buttons[16].fire('click');
+  assert.ok(doc.documentElement.classes.has('practice-focus'));
+  assert.equal(e.pinyinHint.hidden, false);
+  assert.ok(e.pinyinHint.textContent.includes('每个汉字'));
+  const syllables=e.targetDisplay.children.map(x=>x.children[0]?.children[0]?.textContent);
+  assert.deepEqual(syllables,['ni','jin','tian','mang','ma']);
+  assert.equal(e.targetDisplay.children.map(x=>x.children[0]?.textContent).join(''),'你今天忙吗');
+  e.backButton.fire('click');
+  assert.equal(doc.documentElement.classes.has('practice-focus'),false);
+  assert.equal(e.welcomeView.hidden,false);
+});
+
+
+test('按键练习会同步高亮对应手指，帮助用户知道该用哪根手指', () => {
+  const { elements: e } = createApp();
+  e.beginButton.fire('click');
+  const active = e.handGuide.querySelectorAll('.hand-finger').filter(x => x.classes.has('active'));
+  assert.equal(active.length, 1);
+  assert.equal(active[0].dataset.finger, 'left-index');
+  assert.ok(e.fingerHint.textContent.includes('左手食指'));
+});
+
+
+test('所有关卡含中文关均展示手型；中文练习根据拼音变换亮起的手指', () => {
+  const { elements:e, document:doc } = createApp();
+  e.showAllLessonsButton.fire('click');
+  const buttons=e.lessonList.children.filter(x=>x.className.includes('lesson-tile'));
+  for (const button of buttons) {
+    button.fire('click');
+    assert.equal(e.keyboardPanel.hidden, false);
+    assert.equal(e.handGuide.hidden, false);
+    assert.equal(e.handGuide.querySelectorAll('.hand-finger').length, 10);
+    assert.ok(e.handGuide.querySelectorAll('.hand-finger').some(x=>x.classes.has('active')));
+  }
+  buttons[16].fire('click'); // 你今天忙吗：ni
+  assert.equal(e.handGuide.querySelectorAll('.hand-finger').find(x=>x.classes.has('active')).dataset.finger, 'right-index');
+  doc.handlers.keydown({key:'n',preventDefault(){}});
+  assert.equal(e.handGuide.querySelectorAll('.hand-finger').find(x=>x.classes.has('active')).dataset.finger, 'right-middle');
+  assert.equal(e.chineseEntryWrap.hidden,false);
+});
