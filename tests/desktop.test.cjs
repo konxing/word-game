@@ -7,7 +7,7 @@ const root = path.join(__dirname, '..');
 test('README directs nontechnical users to a Windows EXE release instead of CMD files', () => {
   const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
   assert.match(readme, /github\.com\/konxing\/word-game\/releases\/latest/);
-  assert.match(readme, /打字小站\.exe/);
+  assert.match(readme, /WordGame\.exe/);
   assert.match(readme, /桌面快捷方式/);
   assert.ok(!fs.existsSync(path.join(root, '开始练习.cmd')));
   assert.ok(!fs.existsSync(path.join(root, '安装到桌面.cmd')));
@@ -19,7 +19,7 @@ test('GitHub Actions builds a Windows GUI EXE and attaches it to a durable Relea
   assert.match(workflow, /go build/);
   assert.match(workflow, /windowsgui/);
   assert.match(workflow, /gh release create/);
-  assert.match(workflow, /打字小站\.exe/);
+  assert.match(workflow, /WordGame\.exe/);
 });
 
 test('Windows launcher embeds the real hands and keeps the user profile', () => {

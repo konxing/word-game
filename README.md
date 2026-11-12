@@ -6,8 +6,8 @@
 
 **[下载最新 Windows EXE（GitHub Releases）](https://github.com/konxing/word-game/releases/latest)**
 
-1. 打开上面的链接，在 **Assets** 下下载 `打字小站.exe`。
-2. 双击 `打字小站.exe` 即可运行（Windows 10/11 64 位）。
+1. 打开上面的链接，在 **Assets** 下下载 `WordGame.exe`（程序打开后显示“打字小站”）。
+2. 双击 `WordGame.exe` 即可运行（Windows 10/11 64 位）。
 3. 如需桌面图标，请右键 EXE → **发送到 → 桌面快捷方式**。之后双击图标就能练习。
 
 > 不用下载 `Code → Download ZIP` 来安装游戏。GitHub 仓库中的 `*.go`、`*.js` 等是开发用源代码；真正给使用者下载的程序在 **Releases**。旧的 `开始练习.cmd` 与 `安装到桌面.cmd` 已不再作为发布入口。
@@ -43,10 +43,10 @@ go test ./...
 Windows PowerShell 构建：
 
 ```powershell
-go build -trimpath -ldflags="-s -w -H windowsgui" -o 'dist/打字小站.exe' .
+go build -trimpath -ldflags="-s -w -H windowsgui" -o 'dist/WordGame.exe' .
 ```
 
-GitHub Actions 在 `main` 每次更新时自动测试、编译、上传构建产物，并发布带有 `打字小站.exe` 的 GitHub Release。建议从 **Releases → Latest** 下载，而不是从 Actions 取有保留期限的临时构建产物。
+GitHub Actions 在 `main` 每次更新时自动测试、编译、上传构建产物，并发布带有 `WordGame.exe` 的 GitHub Release。建议从 **Releases → Latest** 下载，而不是从 Actions 取有保留期限的临时构建产物。
 
 心理学设计依据见 [学习设计说明](docs/LEARNING-DESIGN.md)。这些方法有理论支持，但本项目尚未做正式的中年成人效果实验。
 

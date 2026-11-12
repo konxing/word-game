@@ -1,7 +1,7 @@
 打字小站 · Windows 离线打字练习
 
 下载 EXE：https://github.com/konxing/word-game/releases/latest
-在 Assets 区下载“打字小站.exe”，然后双击即可运行。
+在 Assets 区下载“WordGame.exe”（打字小站程序），然后双击即可运行。
 
 桌面快捷方式：右键 EXE → 发送到 → 桌面快捷方式。
 支持 Windows 10/11 64 位，需已安装 Edge 或 Chrome，但不需要联网。
