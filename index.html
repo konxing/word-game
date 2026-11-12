@@ -22,28 +22,30 @@
     </header>
 
     <div class="stat-strip" aria-label="练习记录">
-      <div class="stat"><span class="stat-name">已学完</span><strong id="completedCount">0 / 16 关</strong></div>
+      <div class="stat"><span class="stat-name">已尝试</span><strong id="completedCount">0 / 16 关</strong></div>
       <div class="stat"><span class="stat-name">练习天数</span><strong id="practicedDays">0 天</strong></div>
-      <div class="stat stat-tip"><span aria-hidden="true">●</span> 不用赶时间，打对就算进步</div>
+      <div class="stat stat-tip"><span aria-hidden="true">●</span> 今天练一点就够了，休息也没关系</div>
     </div>
 
     <div class="main-layout">
       <aside class="sidebar" aria-label="练习关卡">
-        <div class="sidebar-heading"><h2>选择练习</h2><span>从第一关开始最容易</span></div>
+        <div class="sidebar-heading"><h2>选择练习</h2><span>可以自由选择，先从第一关试试</span></div>
         <div id="lessonList" class="lesson-list"></div>
+        <button type="button" id="showAllLessonsButton" class="secondary-button show-all-lessons" aria-expanded="false">查看全部 16 关</button>
       </aside>
 
       <main id="mainContent" class="main-content" tabindex="-1">
         <section id="welcomeView" class="welcome-card" aria-labelledby="welcomeTitle">
           <div class="eyebrow">适合第一次使用电脑的人</div>
-          <h2 id="welcomeTitle">不需要会打字<br><span>从找到 F 和 J 开始。</span></h2>
+          <h2 id="welcomeTitle">不用急着学会<br><span>今天只练几个键。</span></h2>
           <p class="welcome-lead">屏幕上会告诉你按哪个键。按对了就前进一步，按错了可以重试，没有倒计时，也不用担心失败。</p>
           <div class="welcome-steps">
             <div><span class="step-number">1</span><div><strong>看看屏幕提示</strong><p>找到发亮的字母键</p></div></div>
             <div><span class="step-number">2</span><div><strong>按下真实键盘</strong><p>不熟悉就看下方键盘图</p></div></div>
             <div><span class="step-number">3</span><div><strong>慢慢练习</strong><p>从字母、拼音学到中文输入</p></div></div>
           </div>
-          <button type="button" id="beginButton" class="primary-button large-button">开始第一关 <span aria-hidden="true">→</span></button>
+          <p id="recommendationHint" class="recommendation-hint">每次只需要几个按键，不用一次完成所有关卡。</p>
+          <button type="button" id="beginButton" class="primary-button large-button">开始轻松练习 <span aria-hidden="true">→</span></button>
           <p class="small-note">不用注册账号，断网也能用；练习记录会保存在当前浏览器中。</p>
         </section>
 
@@ -52,7 +54,7 @@
             <button type="button" id="backButton" class="back-button">← 返回选关</button>
             <div id="phaseLabel" class="phase-badge"></div>
           </div>
-          <div class="lesson-heading"><span id="lessonNumber" class="eyebrow"></span><h2 id="lessonTitle"></h2><p id="lessonDescription"></p></div>
+          <div class="lesson-heading"><span id="lessonNumber" class="eyebrow"></span><div id="practiceMode" class="practice-mode">轻松练习 · 不计时</div><h2 id="lessonTitle"></h2><p id="lessonDescription"></p></div>
 
           <div class="journey" aria-label="本关进度">
             <div class="journey-meta"><span>这一关的进度</span><strong id="lessonProgressText">0 / 12</strong></div>
@@ -76,7 +78,7 @@
             <div id="visualKeyboard" class="visual-keyboard" aria-label="键盘位置示意图"></div>
             <p class="keyboard-note">F 和 J 键上通常有一条小凸起，可用两只食指摸到。</p>
           </div>
-          <div class="lesson-footer"><button type="button" id="restartButton" class="secondary-button">重新练这一关</button><span>不计时 · 打错可重试</span></div>
+          <div class="lesson-footer"><button type="button" id="restartButton" class="secondary-button">从头再练</button><span>只要愿意练，就有收获；随时可返回</span></div>
         </section>
 
         <section id="resultView" class="result-card" aria-labelledby="resultTitle" hidden>
@@ -84,14 +86,15 @@
           <div class="eyebrow">练习完成</div>
           <h2 id="resultTitle">这一关，学会了！</h2>
           <p id="resultMessage" class="result-message"></p>
-          <div id="resultStars" class="stars" aria-label="完成评价"></div>
-          <div class="result-numbers"><span>本关打对 <strong id="resultCorrect">0</strong> 次</span><span>正确率 <strong id="resultAccuracy">100%</strong></span></div>
+          <div class="result-achievement" id="resultAchievement">今天又熟悉了一些键位</div>
+          <details class="optional-detail"><summary>想看看这次的练习记录</summary><div class="result-numbers"><span>打对 <strong id="resultCorrect">0</strong> 次</span><span>正确率 <strong id="resultAccuracy">100%</strong></span></div></details>
           <button type="button" id="nextButton" class="primary-button large-button">学习下一关 →</button>
-          <div class="result-choices"><button type="button" id="againButton" class="secondary-button">再练一次</button><button type="button" id="resultHomeButton" class="secondary-button">选择其他关卡</button></div>
+          <p class="result-rest">如果有些累，今天到这里也很好。</p>
+          <div class="result-choices"><button type="button" id="againButton" class="secondary-button">再练一小段</button><button type="button" id="fullLessonButton" class="secondary-button">想多练一点（完整关）</button><button type="button" id="resultHomeButton" class="secondary-button">回到首页</button></div>
         </section>
       </main>
     </div>
-    <footer class="app-footer">这是一款纯离线练习工具。不会上传输入的内容。建议使用电脑键盘，在 Edge 或 Chrome 浏览器中打开。</footer>
+    <footer class="app-footer">这是一款纯离线练习工具。不会上传输入的内容。安装桌面快捷方式后可像普通程序一样双击打开。</footer>
   </div>
   <script src="lessons.js"></script>
   <script src="engine.js"></script>

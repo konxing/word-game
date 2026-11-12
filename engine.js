@@ -25,6 +25,22 @@
     const score = accuracy(correct, errors);
     return score >= 98 ? 3 : score >= 85 ? 2 : 1;
   }
+  function practiceItems(lesson, mode = 'easy') {
+    if (mode === 'full') return lesson.items.slice();
+    if (lesson.mode === 'key') return lesson.items.slice(0, 6);
+    return lesson.items.slice(0, 1);
+  }
+  function nextRecommendedLesson(lessons, completed, today) {
+    const done = completed && typeof completed === 'object' ? completed : {};
+    // Revisit one previously practised lesson after at least two calendar days.
+    const due = lessons.find(lesson => {
+      const info = done[lesson.id];
+      if (!info || !/^\d{4}-\d{2}-\d{2}$/.test(info.lastPracticed || '')) return false;
+      const days = Math.floor((Date.parse(today + 'T00:00:00Z') - Date.parse(info.lastPracticed + 'T00:00:00Z')) / 86400000);
+      return Number.isFinite(days) && days >= 2;
+    });
+    return due || lessons.find(l => !done[l.id]) || lessons[0];
+  }
   function validChinesePrefix(typed, expected) {
     return expected.startsWith(typed);
   }
@@ -44,7 +60,7 @@
     const match = groups.find(([keys]) => keys.includes(String(char).toLowerCase()));
     return match ? `建议用${match[1]}按 ${displayKey(char)} 键。` : `请找到 ${displayKey(char)} 键。`;
   }
-  const api = { displayKey, matchesKey, totalUnits, percent, accuracy, stars, validChinesePrefix, nextCharacter, fingerHint };
+  const api = { displayKey, matchesKey, totalUnits, percent, accuracy, stars, practiceItems, nextRecommendedLesson, validChinesePrefix, nextCharacter, fingerHint };
   root.TypingGameEngine = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

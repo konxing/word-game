@@ -62,9 +62,10 @@ function createApp() {
   return { elements, document, store, root };
 }
 
-test('首页渲染 16 关，按键完成第一关后保存进度并显示成绩', () => {
+test('首页默认只显示四关，完成轻松练习后保存进度与日期', () => {
   const { elements: e, document: doc, store } = createApp();
-  assert.equal(e.lessonList.children.filter(x => x.className.includes('lesson-tile')).length, 16);
+  assert.equal(e.lessonList.children.filter(x => x.className.includes('lesson-tile')).length, 4);
+  assert.equal(e.showAllLessonsButton.attributes['aria-expanded'], 'false');
   e.beginButton.fire('click');
   assert.equal(e.lessonTitle.textContent, '找到 F 和 J');
   assert.equal(e.lessonView.hidden, false);
@@ -77,17 +78,40 @@ test('首页渲染 16 关，按键完成第一关后保存进度并显示成绩'
 
 test('能从中文关卡直接练习，纠错后继续并完成整关', () => {
   const { elements: e } = createApp();
+  e.showAllLessonsButton.fire('click');
   const buttons = e.lessonList.children.filter(x => x.className.includes('lesson-tile'));
+  assert.equal(buttons.length, 16);
   buttons[12].fire('click');
   assert.equal(e.lessonTitle.textContent, '第一句中文');
   assert.equal(e.chineseEntryWrap.hidden, false);
   e.chineseEntry.value = '你号'; e.chineseEntry.fire('input');
   assert.ok(e.feedback.textContent.includes('不一样'));
-  for (const phrase of lessons[12].items) {
+  for (const phrase of engine.practiceItems(lessons[12], 'easy')) {
     e.chineseEntry.value = phrase;
     e.chineseEntry.fire('input');
   }
   assert.equal(e.resultView.hidden, false);
   assert.ok(e.resultMessage.textContent.includes('打错'));
   assert.equal(e.completedCount.textContent, '1 / 16 关');
+});
+
+
+test('错误按键连续两次显示辅助提示，但可以无惩罚地完成', () => {
+  const { elements: e, document: doc } = createApp();
+  e.beginButton.fire('click');
+  doc.handlers.keydown({ key: 'x', preventDefault() {} });
+  doc.handlers.keydown({ key: 'x', preventDefault() {} });
+  assert.ok(e.feedback.textContent.includes('下方亮起来'));
+  for (const key of engine.practiceItems(lessons[0])) doc.handlers.keydown({ key, preventDefault() {} });
+  assert.equal(e.resultView.hidden, false);
+  assert.ok(e.resultMessage.textContent.includes('重新找到'));
+});
+
+test('完整练习可由结算页主动选择，不影响默认轻松练习', () => {
+  const { elements: e, document: doc } = createApp();
+  e.beginButton.fire('click');
+  for (const key of engine.practiceItems(lessons[0])) doc.handlers.keydown({ key, preventDefault() {} });
+  e.fullLessonButton.fire('click');
+  assert.ok(e.practiceMode.textContent.includes('完整'));
+  assert.equal(e.lessonView.hidden, false);
 });

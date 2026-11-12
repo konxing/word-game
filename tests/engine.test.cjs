@@ -43,3 +43,17 @@ test('中文用完整前缀判断，错字可修正，汉字练习无网络', ()
   assert.equal(engine.validChinesePrefix('我会打字了', '我会打字了'), true);
   assert.equal(engine.fingerHint('f').includes('左手食指'), true);
 });
+
+
+test('轻松练习保留短小任务，完整模式不缩减', () => {
+  assert.equal(engine.practiceItems(lessons[3]).length, 6);
+  assert.equal(engine.practiceItems(lessons[12]).length, 1);
+  assert.equal(engine.practiceItems(lessons[3], 'full').length, lessons[3].items.length);
+});
+
+test('复习推荐优先考虑两天前练过的课，但不因当天完成而要求反复复习', () => {
+  const completed = {'01': {lastPracticed: '2026-11-09'}};
+  assert.equal(engine.nextRecommendedLesson(lessons, completed, '2026-11-12').id, '01');
+  completed['01'].lastPracticed = '2026-11-12';
+  assert.equal(engine.nextRecommendedLesson(lessons, completed, '2026-11-12').id, '02');
+});

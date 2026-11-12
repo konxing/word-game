@@ -11,14 +11,19 @@
     lessonNumber: byId('lessonNumber'), lessonTitle: byId('lessonTitle'), lessonDescription: byId('lessonDescription'), phase: byId('phaseLabel'),
     progressText: byId('lessonProgressText'), progressFill: byId('progressFill'), progressMarker: byId('progressMarker'),
     targetLabel: byId('targetLabel'), fingerHint: byId('fingerHint'), imeWrap: byId('chineseEntryWrap'), imeInput: byId('chineseEntry'), keyboardPanel: byId('keyboardPanel'),
-    fontToggle: byId('fontToggle'), soundToggle: byId('soundToggle')
+    fontToggle: byId('fontToggle'), soundToggle: byId('soundToggle'), showAll: byId('showAllLessonsButton')
   };
   let session = null;
   let finishTimer = null;
   let audioContext = null;
   let composing = false;
   let memoryOnly = false;
+  let showAllLessons = false;
   const defaults = { completed: {}, days: [], lastLessonId: '01', largeText: false, soundEnabled: false };
+  function localDay() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  }
 
   function loadProgress() {
     try {
@@ -56,8 +61,14 @@
   }
   function renderList() {
     dom.list.replaceChildren();
+    const anchor = session ? session.lesson : engine.nextRecommendedLesson(lessons, progress.completed, localDay());
+    const anchorIndex = Math.max(0, lessons.findIndex(l => l.id === anchor.id));
+    const start = Math.max(0, Math.min(anchorIndex - 1, lessons.length - 4));
+    const visible = showAllLessons ? lessons : lessons.slice(start, start + 4);
+    dom.showAll.textContent = showAllLessons ? '收起关卡' : `查看全部 ${lessons.length} 关`;
+    dom.showAll.setAttribute('aria-expanded', String(showAllLessons));
     let lastPhase = '';
-    lessons.forEach(lesson => {
+    visible.forEach(lesson => {
       if (lesson.phase !== lastPhase) {
         lastPhase = lesson.phase;
         const title = document.createElement('div');
@@ -74,7 +85,7 @@
       index.className = 'lesson-index'; index.textContent = lesson.id;
       const details = document.createElement('span'); details.className = 'lesson-text';
       const name = document.createElement('span'); name.className = 'lesson-name'; name.textContent = lesson.title;
-      const sub = document.createElement('span'); sub.className = 'lesson-sub'; sub.textContent = progress.completed[lesson.id] ? '已经学会 · 可复习' : '点击开始练习';
+      const sub = document.createElement('span'); sub.className = 'lesson-sub'; sub.textContent = progress.completed[lesson.id] ? '已经练过 · 随时复习' : '点一下就能练';
       details.append(name, sub); button.append(index, details);
       if (progress.completed[lesson.id]) {
         const check = document.createElement('span'); check.className = 'lesson-check'; check.textContent = '✓'; check.setAttribute('aria-hidden', 'true'); button.appendChild(check);
@@ -123,21 +134,26 @@
   function showHome() {
     clearTimer(); session = null; composing = false;
     setView('welcome'); renderList(); renderStats();
-    const firstIncomplete = lessons.find(l => !progress.completed[l.id]);
-    const next = firstIncomplete || lessons.find(l => l.id === progress.lastLessonId) || lessons[0];
+    const next = engine.nextRecommendedLesson(lessons, progress.completed, localDay());
     const begin = byId('beginButton');
     begin.dataset.lessonId = next.id;
-    begin.innerHTML = `${Object.keys(progress.completed).length ? '继续练习' : '开始第一关'} <span aria-hidden="true">→</span>`;
+    begin.innerHTML = `${Object.keys(progress.completed).length ? '开始今天的轻松练习' : '开始轻松练习'} <span aria-hidden="true">→</span>`;
+    const dueReview = !!progress.completed[next.id];
+    byId('recommendationHint').textContent = dueReview
+      ? `推荐先复习「${next.title}」。重复练过的内容，会更熟悉。`
+      : `推荐从「${next.title}」开始。每次只练一小段，不用赶时间。`;
   }
-  function startLesson(id) {
-    const lesson = lessons.find(l => l.id === id);
-    if (!lesson) return;
+  function startLesson(id, mode = 'easy') {
+    const original = lessons.find(l => l.id === id);
+    if (!original) return;
+    const lesson = { ...original, items: engine.practiceItems(original, mode) };
     clearTimer(); composing = false;
-    session = { lesson, itemIndex: 0, characterIndex: 0, correct: 0, errors: 0, locked: false, lastInputWasWrong: false };
+    session = { lesson, practiceMode: mode, itemIndex: 0, characterIndex: 0, correct: 0, errors: 0, consecutiveErrors: 0, locked: false, lastInputWasWrong: false };
     progress.lastLessonId = lesson.id; saveProgress();
     dom.lessonNumber.textContent = `第 ${Number(lesson.id)} 关 / 共 ${lessons.length} 关`;
     dom.lessonTitle.textContent = lesson.title;
     dom.lessonDescription.textContent = lesson.description;
+    byId('practiceMode').textContent = mode === 'full' ? '完整练习 · 不计时' : '轻松练习 · 只练一小段';
     dom.phase.textContent = lesson.phase;
     dom.imeWrap.hidden = lesson.mode !== 'hanzi';
     dom.keyboardPanel.hidden = lesson.mode === 'hanzi';
@@ -201,6 +217,7 @@
   function markItemCompleted(unitCount) {
     if (!session) return;
     session.correct += unitCount;
+    session.consecutiveErrors = 0;
     session.locked = true;
     renderExercise();
     setFeedback('打对了！继续保持。', 'success');
@@ -233,6 +250,7 @@
     if (key === 'Backspace') { setFeedback('这关不需要删除；照着发亮的键再按一次就好。'); return; }
     const next = engine.nextCharacter(session.lesson, session.itemIndex, session.characterIndex);
     if (engine.matchesKey(key, next)) {
+      session.consecutiveErrors = 0;
       if (session.lesson.mode === 'key') {
         markItemCompleted(1);
       } else {
@@ -247,8 +265,11 @@
       }
     } else {
       session.errors += 1;
+      session.consecutiveErrors += 1;
       const readable = engine.displayKey(next);
-      setFeedback(`刚才不是这个键。现在请按「${readable}」，再试一次。`, 'warning');
+      setFeedback(session.consecutiveErrors >= 2
+        ? `可以先看下方亮起来的「${readable}」键，再慢慢找，找到了就按。`
+        : `没关系，再找一下「${readable}」键。`, 'warning');
       highlightKey(next, key.toLowerCase()); beep(false);
     }
   }
@@ -277,32 +298,27 @@
     const { lesson, correct, errors } = session;
     const acc = engine.accuracy(correct, errors);
     const rating = engine.stars(correct, errors);
+    const day = localDay();
     const current = progress.completed[lesson.id] || {};
     progress.completed[lesson.id] = {
       stars: Math.max(rating, Number(current.stars) || 0),
       bestAccuracy: Math.max(acc, Number(current.bestAccuracy) || 0),
-      attempts: (Number(current.attempts) || 0) + 1
+      attempts: (Number(current.attempts) || 0) + 1,
+      fullAttempts: (Number(current.fullAttempts) || 0) + (session.practiceMode === 'full' ? 1 : 0),
+      lastPracticed: day
     };
-    const today = new Date();
-    const day = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     if (!progress.days.includes(day)) progress.days.push(day);
     if (progress.days.length > 366) progress.days = progress.days.slice(-366);
     saveProgress();
     byId('resultCorrect').textContent = String(correct);
     byId('resultAccuracy').textContent = acc + '%';
-    byId('resultTitle').textContent = `第 ${Number(lesson.id)} 关完成！`;
+    byId('resultTitle').textContent = '这一小段，练完了！';
+    byId('resultAchievement').textContent = `今天又练熟了 ${correct} 个按键或字符`;
     byId('resultMessage').textContent = errors === 0
       ? '这次全部按对了。记住手指找到键盘的感觉，下一关也可以慢慢来。'
       : '打错以后能重新找到正确的键，同样是在学习。继续练，手指会越来越熟悉。';
-    const stars = byId('resultStars'); stars.replaceChildren();
-    for (let i = 0; i < 3; i++) {
-      const span = document.createElement('span'); span.textContent = '★';
-      if (i >= rating) span.className = 'unearned';
-      stars.appendChild(span);
-    }
-    stars.setAttribute('aria-label', `获得 ${rating} 颗星（最高 3 颗）`);
     const hasNextLesson = lessons.findIndex(l => l.id === lesson.id) < lessons.length - 1;
-    byId('nextButton').textContent = hasNextLesson ? '学习下一关 →' : '全部关卡已完成 · 返回首页';
+    byId('nextButton').textContent = hasNextLesson ? '试试下一关 →' : '所有关卡都练过了 · 回首页';
     setView('result'); renderStats(); renderList();
     byId('nextButton').focus({ preventScroll: true });
   }
@@ -315,14 +331,16 @@
   }
   byId('beginButton').addEventListener('click', () => startLesson(byId('beginButton').dataset.lessonId || '01'));
   byId('backButton').addEventListener('click', showHome);
-  byId('restartButton').addEventListener('click', () => { if (session) startLesson(session.lesson.id); });
-  byId('againButton').addEventListener('click', () => { if (session) startLesson(session.lesson.id); });
+  byId('restartButton').addEventListener('click', () => { if (session) startLesson(session.lesson.id, session.practiceMode); });
+  byId('againButton').addEventListener('click', () => { if (session) startLesson(session.lesson.id, 'easy'); });
+  byId('fullLessonButton').addEventListener('click', () => { if (session) startLesson(session.lesson.id, 'full'); });
   byId('resultHomeButton').addEventListener('click', showHome);
   byId('nextButton').addEventListener('click', () => {
     if (!session) return;
     const index = lessons.findIndex(l => l.id === session.lesson.id);
-    if (index < 0 || index === lessons.length - 1) showHome(); else startLesson(lessons[index + 1].id);
+    if (index < 0 || index === lessons.length - 1) showHome(); else startLesson(lessons[index + 1].id, 'easy');
   });
+  dom.showAll.addEventListener('click', () => { showAllLessons = !showAllLessons; renderList(); });
   dom.fontToggle.addEventListener('click', () => { progress.largeText = !progress.largeText; applyPreferences(); saveProgress(); });
   dom.soundToggle.addEventListener('click', () => { progress.soundEnabled = !progress.soundEnabled; applyPreferences(); saveProgress(); });
   dom.imeInput.addEventListener('compositionstart', () => { composing = true; });
