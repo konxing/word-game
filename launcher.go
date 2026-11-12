@@ -13,10 +13,10 @@ import (
 	"strings"
 )
 
-//go:embed index.html styles.css app.js engine.js lessons.js assets/typing.ico
+//go:embed index.html styles.css app.js engine.js lessons.js assets/typing.ico assets/left-hand-cutout.png assets/right-hand-cutout.png
 var gameFiles embed.FS
 
-var staticFiles = []string{"index.html", "styles.css", "app.js", "engine.js", "lessons.js", "assets/typing.ico"}
+var staticFiles = []string{"index.html", "styles.css", "app.js", "engine.js", "lessons.js", "assets/typing.ico", "assets/left-hand-cutout.png", "assets/right-hand-cutout.png"}
 
 func installDir() (string, error) {
 	root := os.Getenv("LOCALAPPDATA")

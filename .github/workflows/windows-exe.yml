@@ -1,10 +1,10 @@
-name: Build offline Windows EXE
+name: Build and publish Windows EXE
 on:
   push:
     branches: [main]
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   windows-exe:
     runs-on: windows-latest
@@ -24,9 +24,16 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
           go build -trimpath -ldflags="-s -w -H windowsgui" -o 'dist/打字小站.exe' .
-      - name: Upload Windows executable
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: WordGame-Windows-EXE
           path: dist/打字小站.exe
           retention-days: 30
+      - name: Publish permanent GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "v1.$env:GITHUB_RUN_NUMBER.0"
+          gh release create $tag 'dist/打字小站.exe#打字小站.exe' --title "打字小站 Windows 离线版 $tag" --notes "Windows 10/11 64 位；下载打字小站.exe 后双击即可运行。游戏离线使用，需电脑已有 Edge 或 Chrome。" --latest --target $env:GITHUB_SHA

@@ -4,28 +4,31 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.join(__dirname, '..');
 
-test('Windows installer is fully offline and creates the app-mode shortcut in stable profile directory', () => {
-  const setup = fs.readFileSync(path.join(root, 'windows', 'install.ps1'));
-  assert.deepEqual([...setup.subarray(0, 3)], [0xef, 0xbb, 0xbf]);
-  const src = setup.toString('utf8');
-  assert.match(src, /LOCALAPPDATA/);
-  assert.match(src, /TypingHarbor/);
-  assert.match(src, /BrowserProfile/);
-  assert.match(src, /CreateShortcut/);
-  assert.match(src, /--app=/);
-  assert.match(src, /--user-data-dir=/);
-  assert.match(src, /GetFolderPath\('Desktop'\)/);
-  for (const file of ['index.html','styles.css','app.js','engine.js','lessons.js']) {
-    assert.ok(fs.existsSync(path.join(root, file)));
-    assert.ok(src.includes(file));
-  }
-  assert.ok(fs.statSync(path.join(root, 'assets', 'typing.ico')).size > 1000);
-  assert.doesNotMatch(src, /Invoke-WebRequest|DownloadFile|https?:\/\//i);
+test('README directs nontechnical users to a Windows EXE release instead of CMD files', () => {
+  const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
+  assert.match(readme, /github\.com\/konxing\/word-game\/releases\/latest/);
+  assert.match(readme, /打字小站\.exe/);
+  assert.match(readme, /桌面快捷方式/);
+  assert.ok(!fs.existsSync(path.join(root, '开始练习.cmd')));
+  assert.ok(!fs.existsSync(path.join(root, '安装到桌面.cmd')));
 });
 
-test('shortcut setup can be invoked by double-click and startup remains possible without installing', () => {
-  const setup = fs.readFileSync(path.join(root, '安装到桌面.cmd'), 'utf8');
-  assert.match(setup, /powershell.exe/);
-  assert.match(setup, /windows\\install.ps1/);
-  assert.ok(fs.existsSync(path.join(root, '开始练习.cmd')));
+test('GitHub Actions builds a Windows GUI EXE and attaches it to a durable Release', () => {
+  const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'windows-exe.yml'), 'utf8');
+  assert.match(workflow, /contents: write/);
+  assert.match(workflow, /go build/);
+  assert.match(workflow, /windowsgui/);
+  assert.match(workflow, /gh release create/);
+  assert.match(workflow, /打字小站\.exe/);
+});
+
+test('Windows launcher embeds the real hands and keeps the user profile', () => {
+  const source = fs.readFileSync(path.join(root, 'launcher.go'), 'utf8');
+  for (const name of ['assets/left-hand-cutout.png', 'assets/right-hand-cutout.png']) {
+    assert.match(source, new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    assert.ok(fs.existsSync(path.join(root, name)));
+  }
+  assert.match(source, /BrowserProfile/);
+  assert.match(source, /--app=/);
+  assert.match(source, /--user-data-dir=/);
 });

@@ -135,14 +135,15 @@ test('练习时启用单屏专注布局，中文句子展示对应拼音，返�
 });
 
 
-test('按键练习在键盘上叠加半透明 SVG 双手，且当前手指动态高亮', () => {
-  const { elements: e, document: doc } = createApp();
+test('练习区使用透明双手素材，指尖有引导且无几何假手指', () => {
+  const {elements:e,document:doc} = createApp();
   e.beginButton.fire('click');
-  const svg=e.visualKeyboard.children.at(-1);
-  assert.equal(svg.attributes['aria-hidden'],'true');
-  assert.equal(svg.children.length,22); // 2 hand palms and 10 finger paths + 10 fingertips
-  assert.ok(svg.children.some(x=>x.className.includes('is-pressing')));
+  const svg = e.visualKeyboard.children.at(-1);
+  assert.equal(svg.attributes['aria-hidden'], 'true');
+  assert.equal(svg.children.filter(x => x.className === 'hand-photo').length, 2);
+  assert.equal(svg.children.filter(x => x.className === 'hand-finger-path').length, 0);
+  assert.equal(svg.children.filter(x => x.className === 'hand-palm').length, 0);
+  assert.ok(svg.children.some(x => x.className === 'fingertip-guide-ring'));
   assert.ok(e.fingerHint.textContent.includes('左手食指'));
   doc.handlers.keydown({key:'f',preventDefault(){}});
-  assert.ok(svg.children.some(x=>x.className.includes('is-pressing')));
 });
