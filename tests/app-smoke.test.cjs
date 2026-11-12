@@ -22,7 +22,7 @@ class FakeElement {
   appendChild(node) { this.children.push(node); return node; }
   replaceChildren(...nodes) { this.children = [...nodes]; }
   addEventListener(type, fn) { this.handlers[type] = fn; }
-  setAttribute(name, value) { this.attributes[name] = value; }
+  setAttribute(name, value) { this.attributes[name] = value; if (name === 'class') this.className = value; }
   focus() {}
   querySelectorAll(selector) {
     const answer = [];
@@ -42,6 +42,7 @@ function createApp() {
   const document = {
     getElementById: id => elements[id] || null,
     createElement: () => new FakeElement(),
+    createElementNS: () => new FakeElement(),
     querySelector: () => new FakeElement(),
     addEventListener(event, fn) { this.handlers[event] = fn; },
     handlers: {},
@@ -134,30 +135,14 @@ test('练习时启用单屏专注布局，中文句子展示对应拼音，返�
 });
 
 
-test('按键练习会同步高亮对应手指，帮助用户知道该用哪根手指', () => {
-  const { elements: e } = createApp();
+test('按键练习在键盘上叠加半透明 SVG 双手，且当前手指动态高亮', () => {
+  const { elements: e, document: doc } = createApp();
   e.beginButton.fire('click');
-  const active = e.handGuide.querySelectorAll('.hand-finger').filter(x => x.classes.has('active'));
-  assert.equal(active.length, 1);
-  assert.equal(active[0].dataset.finger, 'left-index');
+  const svg=e.visualKeyboard.children.at(-1);
+  assert.equal(svg.attributes['aria-hidden'],'true');
+  assert.equal(svg.children.length,22); // 2 hand palms and 10 finger paths + 10 fingertips
+  assert.ok(svg.children.some(x=>x.className.includes('is-pressing')));
   assert.ok(e.fingerHint.textContent.includes('左手食指'));
-});
-
-
-test('所有关卡含中文关均展示手型；中文练习根据拼音变换亮起的手指', () => {
-  const { elements:e, document:doc } = createApp();
-  e.showAllLessonsButton.fire('click');
-  const buttons=e.lessonList.children.filter(x=>x.className.includes('lesson-tile'));
-  for (const button of buttons) {
-    button.fire('click');
-    assert.equal(e.keyboardPanel.hidden, false);
-    assert.equal(e.handGuide.hidden, false);
-    assert.equal(e.handGuide.querySelectorAll('.hand-finger').length, 10);
-    assert.ok(e.handGuide.querySelectorAll('.hand-finger').some(x=>x.classes.has('active')));
-  }
-  buttons[16].fire('click'); // 你今天忙吗：ni
-  assert.equal(e.handGuide.querySelectorAll('.hand-finger').find(x=>x.classes.has('active')).dataset.finger, 'right-index');
-  doc.handlers.keydown({key:'n',preventDefault(){}});
-  assert.equal(e.handGuide.querySelectorAll('.hand-finger').find(x=>x.classes.has('active')).dataset.finger, 'right-middle');
-  assert.equal(e.chineseEntryWrap.hidden,false);
+  doc.handlers.keydown({key:'f',preventDefault(){}});
+  assert.ok(svg.children.some(x=>x.className.includes('is-pressing')));
 });

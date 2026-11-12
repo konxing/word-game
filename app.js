@@ -11,7 +11,7 @@
     lessonNumber: byId('lessonNumber'), lessonTitle: byId('lessonTitle'), lessonDescription: byId('lessonDescription'), phase: byId('phaseLabel'),
     progressText: byId('lessonProgressText'), progressFill: byId('progressFill'), progressMarker: byId('progressMarker'),
     targetLabel: byId('targetLabel'), fingerHint: byId('fingerHint'), imeWrap: byId('chineseEntryWrap'), imeInput: byId('chineseEntry'), keyboardPanel: byId('keyboardPanel'),
-    handGuide: byId('handGuide'), fontToggle: byId('fontToggle'), soundToggle: byId('soundToggle'), showAll: byId('showAllLessonsButton')
+    fontToggle: byId('fontToggle'), soundToggle: byId('soundToggle'), showAll: byId('showAllLessonsButton')
   };
   let session = null;
   let finishTimer = null;
@@ -126,51 +126,111 @@
       dom.keyboard.appendChild(row);
     });
   }
-  function buildHandGuide() {
-    dom.handGuide.replaceChildren();
-    const hands = [
-      { title: '左手', hint: '小指 → 食指', fingers: [
-        ['left-pinky', '小指'], ['left-ring', '无名'], ['left-middle', '中指'], ['left-index', '食指'], ['left-thumb', '拇指']
-      ]},
-      { title: '右手', hint: '食指 → 小指', fingers: [
-        ['right-thumb', '拇指'], ['right-index', '食指'], ['right-middle', '中指'], ['right-ring', '无名'], ['right-pinky', '小指']
-      ]}
-    ];
-    hands.forEach(hand => {
-      const card = document.createElement('div');
-      card.className = 'hand-card';
-      const heading = document.createElement('div');
-      heading.className = 'hand-card-title';
-      heading.textContent = hand.title;
-      const subtitle = document.createElement('div');
-      subtitle.className = 'hand-card-hint';
-      subtitle.textContent = hand.hint;
-      const fingerRow = document.createElement('div');
-      fingerRow.className = 'hand-finger-row';
-      hand.fingers.forEach(([code, label]) => {
-        const finger = document.createElement('div');
-        finger.className = 'hand-finger';
-        finger.dataset.finger = code;
-        finger.innerHTML = `<span class="hand-finger-label">${label}</span><span class="hand-finger-dot" aria-hidden="true"></span>`;
-        fingerRow.appendChild(finger);
-      });
-      card.append(heading, subtitle, fingerRow);
-      dom.handGuide.appendChild(card);
+  // 半透明双手直接覆盖键盘：静止时指尖放在基准键位，当前手指伸向目标键。
+  // 手是 SVG 形状而不是额外的卡片，尺寸由真实键帽位置计算。
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const fingerHomes = {
+    'left-pinky': 'a', 'left-ring': 's', 'left-middle': 'd', 'left-index': 'f',
+    'right-index': 'j', 'right-middle': 'k', 'right-ring': 'l', 'right-pinky': ';',
+    'left-thumb': ' ', 'right-thumb': ' '
+  };
+  const handLayers = new Map();
+  let handSvg = null;
+  let lastHandKey = null;
+  function svgPart(tag, attributes = {}) {
+    const element = document.createElementNS(svgNS, tag);
+    Object.entries(attributes).forEach(([name, value]) => element.setAttribute(name, String(value)));
+    return element;
+  }
+  function buildHandOverlay() {
+    handSvg = svgPart('svg', { class: 'keyboard-hands', 'aria-hidden': 'true', preserveAspectRatio: 'none' });
+    // Two translucent palms with articulated transparent finger shapes.
+    for (const side of ['left', 'right']) {
+      const palm = svgPart('path', { class: 'hand-palm ' + side });
+      palm.dataset.side = side;
+      handSvg.appendChild(palm);
+      handLayers.set(side + '-palm', palm);
+    }
+    Object.keys(fingerHomes).forEach(code => {
+      const path = svgPart('path', { class: 'hand-finger-path', 'data-code': code, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+      const nail = svgPart('ellipse', { class: 'hand-fingertip', 'data-code': code, rx: 6, ry: 4 });
+      path.dataset.code = code; nail.dataset.code = code;
+      handSvg.append(path, nail);
+      handLayers.set(code, { path, nail });
     });
+    dom.keyboard.appendChild(handSvg);
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(() => updateHandOverlay(lastHandKey)).observe(dom.keyboard);
+    } else if (typeof window.addEventListener === 'function') {
+      window.addEventListener('resize', () => updateHandOverlay(lastHandKey));
+    }
+  }
+  function updateHandOverlay(expected) {
+    lastHandKey = expected || null;
+    if (!handSvg) return;
+    const nodes = dom.keyboard.querySelectorAll('.key');
+    const byKey = new Map(Array.from(nodes).map(node => [node.dataset.key, node]));
+    const bounds = typeof dom.keyboard.getBoundingClientRect === 'function'
+      ? dom.keyboard.getBoundingClientRect() : null;
+    const width = bounds && bounds.width > 0 ? bounds.width : 660;
+    const height = bounds && bounds.height > 0 ? bounds.height : 170;
+    const positions = new Map();
+    if (bounds) {
+      byKey.forEach((node, key) => {
+        if (typeof node.getBoundingClientRect !== 'function') return;
+        const rect = node.getBoundingClientRect();
+        positions.set(key, { x: rect.left - bounds.left + rect.width / 2, y: rect.top - bounds.top + rect.height / 2 });
+      });
+    }
+    // Tests and very first offscreen paint can use deterministic fallback coordinates.
+    if (!positions.size) {
+      const fake = {a:[155,89],s:[195,89],d:[235,89],f:[275,89],j:[405,89],k:[445,89],l:[485,89],';':[525,89],' ':[330,150]};
+      Object.entries(fake).forEach(([key,[x,y]]) => positions.set(key, {x:x*width/660,y:y*height/170}));
+    }
+    const point = key => positions.get(key) || { x: width/2, y: height/2 };
+    const leftX = (point('a').x + point('f').x) / 2;
+    const rightX = (point('j').x + point(';').x) / 2;
+    const baseline = height + Math.max(12, height*.08);
+    const palmWidth = Math.max(42, (point('f').x-point('a').x)*.68);
+    handSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    for (const [side, x] of [['left',leftX],['right',rightX]]) {
+      const palm = handLayers.get(side+'-palm');
+      const pw = palmWidth;
+      const top = height*.66;
+      palm.setAttribute('d', `M ${x-pw} ${baseline+25} Q ${x-pw*1.16} ${height*.89} ${x-pw*.78} ${top} Q ${x} ${top-18} ${x+pw*.78} ${top} Q ${x+pw*1.16} ${height*.89} ${x+pw} ${baseline+25} Z`);
+    }
+    const assignment = engine.fingerAssignment(expected);
+    const active = new Set((assignment && assignment.codes) || []);
+    const dest = point(expected);
+    for (const [code, homeKey] of Object.entries(fingerHomes)) {
+      const home = point(homeKey);
+      const selected = active.has(code);
+      let tip = selected && expected !== ' ' ? dest : home;
+      if (code.endsWith('thumb')) {
+        tip = selected ? {x:point(' ').x + (code.startsWith('left')?-25:25),y:point(' ').y} :
+          {x:point(' ').x + (code.startsWith('left')?-35:35),y:point(' ').y};
+      }
+      const group = code.startsWith('left') ? leftX : rightX;
+      const fromX = home.x*.68 + group*.32;
+      const bend = code.endsWith('thumb') ? 28 : 11;
+      const yStart = height*.85;
+      const d = `M ${fromX.toFixed(1)} ${yStart.toFixed(1)} C ${fromX.toFixed(1)} ${(height*.67).toFixed(1)} ${(tip.x+bend*(tip.x>fromX? -1:1)).toFixed(1)} ${(tip.y+height*.14).toFixed(1)} ${tip.x.toFixed(1)} ${tip.y.toFixed(1)}`;
+      const {path,nail} = handLayers.get(code);
+      path.setAttribute('d', d);
+      path.setAttribute('class', 'hand-finger-path' + (selected ? ' is-pressing' : ''));
+      nail.setAttribute('cx', tip.x.toFixed(1)); nail.setAttribute('cy', tip.y.toFixed(1));
+      nail.setAttribute('class', 'hand-fingertip' + (selected ? ' is-pressing' : ''));
+    }
   }
   function highlightFinger(expected) {
     const assignment = engine.fingerAssignment(expected);
     const active = new Set((assignment && assignment.codes) || []);
-    dom.handGuide.querySelectorAll('.hand-finger').forEach(node => {
-      const on = active.has(node.dataset.finger);
-      node.classList.toggle('active', on);
-      node.classList.toggle('muted', active.size > 0 && !on);
-    });
     dom.keyboard.querySelectorAll('.key').forEach(node => {
       const code = node.dataset.finger || '';
       node.classList.toggle('finger-active', active.has(code));
       node.classList.toggle('finger-muted', active.size > 0 && !!code && !active.has(code));
     });
+    updateHandOverlay(expected);
   }
   function highlightKey(expected, wrong) {
     dom.keyboard.querySelectorAll('.key').forEach(node => {
@@ -212,7 +272,6 @@
     dom.imeWrap.hidden = lesson.mode !== 'hanzi';
     // 所有关卡均显示手型和键盘位置，包括使用系统输入法的中文句子。
     dom.keyboardPanel.hidden = false;
-    dom.handGuide.hidden = false;
     dom.imeInput.value = ''; dom.imeInput.disabled = false;
     setView('lesson'); renderList(); renderExercise();
     setFeedback(lesson.mode === 'hanzi' ? '在输入框中打出屏幕上的汉字。' : '看哪个键发亮，就按哪个键。');
@@ -438,7 +497,7 @@
   dom.imeInput.addEventListener('compositionend', () => { composing = false; typedPinyin = ''; handleChineseInput(); });
   dom.imeInput.addEventListener('input', handleChineseInput);
   document.addEventListener('keydown', onGlobalKey);
-  buildKeyboard(); buildHandGuide(); applyPreferences(); showHome();
+  buildKeyboard(); buildHandOverlay(); applyPreferences(); showHome();
   if (memoryOnly) {
     const note = document.querySelector('.small-note');
     note.textContent = '当前浏览器禁用了本地记录。可以正常练习，但关闭以后可能无法保存进度。';
